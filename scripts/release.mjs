@@ -24,8 +24,10 @@ const RUN_DISCOVERY_TIMEOUT_MS = 60_000;
 export const RELEASE_WORKFLOWS = {
   desktop: "desktop-build.yml",
   mobile: "mobile-build.yml",
+  androidPlaySignature: "android-play-signature-audit.yml",
   docker: "docker-image.yml",
   demo: "deploy-demo.yml",
+  timings: "release-timings.yml",
 };
 
 export const RELEASE_VALIDATIONS = [
@@ -358,7 +360,7 @@ export const buildIssueBody = ({ changesEn, changesZh, commitCoverageAudit }) =>
   "## Acceptance criteria",
   "",
   "- Required type checks, Web build, and native release planning tests pass.",
-  "- The Draft Release contains audited macOS arm64 and x64 DMGs and an Android arm64 APK.",
+  "- The Draft Release contains audited macOS arm64 and x64 DMGs and a Play-signed Android arm64 APK.",
   "- Post-publication native asset audits pass.",
 ].join("\n");
 
@@ -1073,6 +1075,22 @@ const releaseMain = async (options) => {
     mobileRebuild: mobilePlan.rebuild,
   });
 
+  console.log(
+    `[release] requiring the Draft Android APK to use the Google Play app-signing certificate; ` +
+    `if this fails, run "bun run publish:stores -- --release ${tag} --platform android --android-track production" and resume the release.`,
+  );
+  const androidPlaySignatureRunId = await dispatchReleaseWorkflow({
+    repository: options.repository,
+    workflow: RELEASE_WORKFLOWS.androidPlaySignature,
+    tag,
+    headSha: releaseSha,
+  });
+  await waitForRun({
+    repository: options.repository,
+    runId: androidPlaySignatureRunId,
+    label: "Draft Android Play signature gate",
+  });
+
   const publishedAt = Date.now();
   const releaseUrl = run("gh", [
     "release",
@@ -1161,6 +1179,38 @@ const releaseMain = async (options) => {
     "--body",
     `Released in [${tag}](${releaseUrl}).\n\nRequired local validations, Draft asset and image preparation, and post-publication audits passed.`,
   ]);
+  const timingDispatch = run("gh", [
+    "workflow",
+    "run",
+    RELEASE_WORKFLOWS.timings,
+    "--repo",
+    options.repository,
+    "--ref",
+    "main",
+    "-f",
+    `release_tag=${tag}`,
+    "-f",
+    `release_sha=${releaseSha}`,
+    "-f",
+    `issue_number=${issueNumber}`,
+    "-f",
+    `desktop_run_id=${desktopRunId}`,
+    "-f",
+    `desktop_mode=${desktopPlan.rebuild ? "rebuild" : "reuse"}`,
+    "-f",
+    `mobile_run_id=${mobileRunId}`,
+    "-f",
+    `mobile_mode=${mobilePlan.rebuild ? "rebuild" : "reuse"}`,
+    "-f",
+    `docker_run_id=${dockerRunId}`,
+  ], { allowFailure: true });
+  if (timingDispatch.status === 0) {
+    console.log(
+      `[release] endpoint timing report continues in background: https://github.com/${options.repository}/actions/workflows/${RELEASE_WORKFLOWS.timings}`,
+    );
+  } else {
+    console.warn("[release] failed to dispatch the non-blocking endpoint timing report");
+  }
   run("gh", [
     "issue",
     "close",

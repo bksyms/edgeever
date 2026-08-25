@@ -1,17 +1,17 @@
 {
-  "version": "1.40.0",
+  "version": "1.42.0",
   "changes": {
     "en-US": [
-      "Access Web, desktop, Android, and iOS clients from a compact download menu in the sidebar.",
-      "Enjoy clearer workspace hierarchy, more consistent contrast, and refined colors across themes, editor views, exported notes, and print output.",
-      "Use self-hosted Docker instances over HTTP without client identity, sync, or rendering failures.",
-      "Desktop updates are now discovered more reliably, with clearer instance and version information in the app."
+      "Use the new CodeMirror-powered Markdown source editor with theme-aware syntax styling, lazy loading, and Tab/Shift-Tab indentation.",
+      "Improve content readability across Web, Android, and iOS with refined spacing, table layout, dark-mode selection contrast, and inline-code styling.",
+      "Keep the public Demo workspace consistent after scheduled resets instead of retaining stale local data.",
+      "Publish Tencent TCR multi-architecture images through Tencent-side builds for faster and more reliable availability in China."
     ],
     "zh-CN": [
-      "现在可通过侧边栏中的紧凑下载菜单快速访问 Web、桌面、Android 和 iOS 客户端。",
-      "优化工作区层级、交互对比度与主题配色，并统一编辑视图、导出笔记和打印内容的视觉表现。",
-      "修复自托管 Docker 实例通过 HTTP 访问时可能出现的客户端标识、同步和渲染问题。",
-      "提升桌面端更新发现的可靠性，并在应用内提供更清晰的实例与版本信息。"
+      "Markdown 源码编辑器升级为 CodeMirror，支持跟随主题的语法样式、按需加载以及 Tab/Shift-Tab 缩进。",
+      "优化 Web、Android 和 iOS 的内容可读性，包括间距、表格布局、深色模式选区对比度和行内代码样式。",
+      "修复公开 Demo 定时重置后仍可能保留旧本地数据的问题，确保工作区状态一致。",
+      "腾讯云 TCR 多架构镜像改为在腾讯云侧构建，提升中国大陆区域的发布速度与稳定性。"
     ]
   }
 }
